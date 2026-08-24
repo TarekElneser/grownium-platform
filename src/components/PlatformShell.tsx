@@ -76,13 +76,12 @@ function Header({ session, onLogoClick }: { session: Session; onLogoClick: () =>
       <button
         onClick={onLogoClick}
         title="Ir a Proyectos"
-        className="flex items-center gap-2 cursor-pointer group"
+        className="flex items-center gap-2.5 cursor-pointer"
       >
-        <span className="w-6 h-6 rounded-md bg-primary text-primary-foreground flex items-center justify-center font-semibold text-xs flex-shrink-0">
-          G
-        </span>
-        <span className="text-foreground text-sm font-medium group-hover:text-foreground/80 transition-colors duration-200">
-          Grownium
+        <img src="/grownium-logo-full.svg" alt="Grownium" className="h-6 w-auto flex-shrink-0" />
+        {/* Mismo estilo que el eyebrow "Sitio" del sidebar (SidebarHeading) */}
+        <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+          /CMS
         </span>
       </button>
 
