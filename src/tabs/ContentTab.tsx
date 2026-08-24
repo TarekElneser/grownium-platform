@@ -191,11 +191,57 @@ const FIELD_TAGS: Record<string, string> = {
   'footer.bottomTagline': 'p',
 };
 
-function fieldLabel(fieldId: string): string {
+// Qué campos de texto son en realidad la etiqueta de un botón, y de qué
+// variante — verificado contra el JSX de cada sección en el sitio (mismo
+// criterio que FIELD_TAGS): 'primary' = <ContactButton> sin variant (o el
+// submit del formulario, con el mismo estilo verde relleno); 'secondary' =
+// <ContactButton variant="secondary"> o el link con borde del hero. No
+// coincide 1:1 con isCtaField() de abajo: ese helper solo mira el nombre
+// del campo (para el divisor visual) y a propósito deja afuera
+// contact.submitButton, que acá sí cuenta porque también es un botón.
+const FIELD_CTA_VARIANT: Record<string, 'primary' | 'secondary'> = {
+  'hero.ctaPrimary': 'primary',
+  'hero.ctaSecondary': 'secondary',
+  'about.ctaButton': 'primary',
+  'expectativas.ctaButton': 'secondary',
+  'differentiators.ctaButton': 'primary',
+  'agency.ctaButton': 'primary',
+  'results.ctaButton': 'primary',
+  'cta.ctaButton': 'primary',
+  'contact.submitButton': 'primary',
+};
+
+// Badge que se superpone adentro, a la derecha, de los inputs que son
+// etiquetas de botón — para que quede claro de un vistazo si ese texto va
+// en el botón principal (verde) o secundario (gris) del sitio real.
+function CtaVariantBadge({ variant }: { variant: 'primary' | 'secondary' }) {
+  return (
+    <span
+      className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+        variant === 'primary' ? 'bg-primary text-primary-foreground' : 'bg-neutral-500 text-white'
+      }`}
+    >
+      {variant === 'primary' ? 'Principal' : 'Secundario'}
+    </span>
+  );
+}
+
+// El field_id (y el tag HTML entre paréntesis) es un identificador técnico,
+// no prosa — va en JetBrains Mono, igual que el resto de "datos técnicos"
+// de la interfaz.
+function FieldLabel({ fieldId }: { fieldId: string }) {
   const human = FIELD_LABELS[fieldId];
-  if (!human) return fieldId;
   const tag = FIELD_TAGS[fieldId];
-  return tag ? `${human} (${fieldId} · ${tag})` : `${human} (${fieldId})`;
+
+  if (!human) {
+    return <span className="font-mono">{fieldId}</span>;
+  }
+
+  return (
+    <>
+      {human} <span className="font-mono">({fieldId}{tag ? ` · ${tag}` : ''})</span>
+    </>
+  );
 }
 
 // Campos "botón/CTA" — cualquier field_id cuyo nombre de campo (después de
@@ -257,6 +303,8 @@ export default function ContentTab({ session, site }: TabProps) {
       .from('fields')
       .select('id, field_id, value, default_value, type')
       .eq('site_id', site.id)
+      // Los campos 'seo.*' se editan aparte, en SeoTab — ya no aparecen acá.
+      .not('field_id', 'like', 'seo.%')
       .order('field_id')
       .then(({ data, error }) => {
         if (cancelled) return;
@@ -376,7 +424,7 @@ export default function ContentTab({ session, site }: TabProps) {
   }
 
   return (
-    <div className="pb-28">
+    <div>
       <div className="max-w-3xl mx-auto px-5 sm:px-8 md:px-10 pt-10">
         <header className="pb-10">
           <h1 className="text-[#D7E2EA] font-extrabold text-2xl">Editar contenido</h1>
@@ -407,7 +455,7 @@ export default function ContentTab({ session, site }: TabProps) {
 
                     {row.type === 'image' ? (
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-[#D7E2EA]/40 text-xs">{fieldLabel(row.field_id)}</label>
+                        <label className="text-[#D7E2EA]/40 text-xs"><FieldLabel fieldId={row.field_id} /></label>
                         <ImageUploadField
                           value={edits[row.id] ?? ''}
                           pathPrefix={`${site.id}/${row.field_id}`}
@@ -417,15 +465,22 @@ export default function ContentTab({ session, site }: TabProps) {
                       </div>
                     ) : (
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-[#D7E2EA]/40 text-xs">{fieldLabel(row.field_id)}</label>
-                        <textarea
-                          rows={row.field_id.endsWith('.paragraph') || row.field_id.endsWith('.title') ? 2 : 1}
-                          value={edits[row.id] ?? ''}
-                          onChange={(e) => setEdits((prev) => ({ ...prev, [row.id]: e.target.value }))}
-                          className="bg-[#D7E2EA]/5 border border-[#D7E2EA]/15 rounded-xl px-4 py-2.5 text-[#D7E2EA]
-                            outline-none focus:border-[#00F3B6] transition-colors duration-200 resize-y"
-                          style={{ fontSize: '0.9375rem' }}
-                        />
+                        <label className="text-[#D7E2EA]/40 text-xs"><FieldLabel fieldId={row.field_id} /></label>
+                        <div className="relative">
+                          <textarea
+                            rows={row.field_id.endsWith('.paragraph') || row.field_id.endsWith('.title') ? 2 : 1}
+                            value={edits[row.id] ?? ''}
+                            onChange={(e) => setEdits((prev) => ({ ...prev, [row.id]: e.target.value }))}
+                            className={`w-full bg-[#D7E2EA]/5 border border-[#D7E2EA]/15 rounded-xl px-4 py-2.5 text-[#D7E2EA]
+                              outline-none focus:border-[#00F3B6] transition-colors duration-200 resize-y ${
+                                FIELD_CTA_VARIANT[row.field_id] ? 'pr-24' : ''
+                              }`}
+                            style={{ fontSize: '0.9375rem' }}
+                          />
+                          {FIELD_CTA_VARIANT[row.field_id] && (
+                            <CtaVariantBadge variant={FIELD_CTA_VARIANT[row.field_id]} />
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -436,9 +491,15 @@ export default function ContentTab({ session, site }: TabProps) {
         </div>
       ))}
 
-      {/* Barra inferior fija — guardar cambios */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-[#D7E2EA]/10 bg-[#0C0C0C]/95 backdrop-blur-md px-5 sm:px-8 md:px-10 py-4">
-        <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
+      {/* Barra inferior — guardar cambios. `sticky` (no `fixed`) a
+          propósito: así queda contenida en el ancho del <main> de
+          PlatformShell y nunca se superpone al sidebar de la izquierda —
+          `fixed` la estiraba a todo el viewport, tapándolo. `h-12`: misma
+          altura que el header de la plataforma (`py-2.5` + el botón de
+          logout de `h-7` ahí = 48px) — el botón de acá se achica a `h-8`
+          para entrar cómodo, en vez de la altura por defecto que tenía. */}
+      <div className="sticky bottom-0 h-12 flex items-center border-t border-[#D7E2EA]/10 bg-[#0C0C0C]/95 backdrop-blur-md px-5 sm:px-8 md:px-10">
+        <div className="max-w-3xl mx-auto w-full flex items-center justify-between gap-4">
           <p className="text-sm">
             {message ? (
               <span className={message.type === 'success' ? 'text-[#00F3B6]' : 'text-red-400'}>
@@ -453,7 +514,7 @@ export default function ContentTab({ session, site }: TabProps) {
           <button
             onClick={handleSave}
             disabled={saving || dirtyRows.length === 0 || Object.values(uploading).some(Boolean)}
-            className="rounded-full font-bold text-[#0C0C0C] px-6 py-2.5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
+            className="h-8 inline-flex items-center justify-center rounded-full font-bold text-sm text-[#0C0C0C] px-5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
             style={{ background: 'linear-gradient(180deg, #00FFBF 0%, #00C99A 100%)' }}
           >
             {saving ? 'Guardando…' : 'Guardar cambios'}

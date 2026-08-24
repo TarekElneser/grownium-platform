@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { useSession } from './hooks/useSession';
 import { useSiteAccess } from './hooks/useSiteAccess';
 import { supabase } from './lib/supabaseClient';
 import LoginForm from './components/LoginForm';
-import SiteSelector from './components/SiteSelector';
 import PlatformShell from './components/PlatformShell';
 
 function LoadingScreen() {
@@ -34,10 +32,12 @@ function ErrorScreen({ message }: { message: string }) {
  * `key={session.user.id}` desde <App>, así si cambia el usuario (logout +
  * login con otra cuenta) React la remonta de cero y el sitio elegido no
  * queda pegado de la sesión anterior.
+ *
+ * La elección de sitio ya no pasa por acá: <PlatformShell> la maneja
+ * internamente como parte de su navegación (nivel plataforma -> "Proyectos").
  */
 function AuthenticatedApp({ session }: { session: Session }) {
   const { loading, error, sites } = useSiteAccess(session);
-  const [selectedSiteId, setSelectedSiteId] = useState<string | null>(null);
 
   if (loading) {
     return <LoadingScreen />;
@@ -53,27 +53,7 @@ function AuthenticatedApp({ session }: { session: Session }) {
     );
   }
 
-  const activeSite =
-    sites.find((s) => s.id === selectedSiteId) ?? (sites.length === 1 ? sites[0] : null);
-
-  if (!activeSite) {
-    return (
-      <SiteSelector
-        sites={sites}
-        onSelect={(site) => setSelectedSiteId(site.id)}
-        onLogout={() => supabase.auth.signOut()}
-      />
-    );
-  }
-
-  return (
-    <PlatformShell
-      session={session}
-      site={activeSite}
-      canSwitchSite={sites.length > 1}
-      onSwitchSite={() => setSelectedSiteId(null)}
-    />
-  );
+  return <PlatformShell session={session} sites={sites} />;
 }
 
 export default function App() {

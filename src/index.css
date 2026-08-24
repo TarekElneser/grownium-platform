@@ -7,10 +7,123 @@
 }
 
 html, body, #root {
-  background: #0C0C0C;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--background);
+  font-family: 'Inter', sans-serif;
 }
 
 body {
   margin: 0;
+}
+
+/*
+ * Paleta de marca de Grownium — reemplaza la paleta neutra por defecto de
+ * shadcn. Hoy la plataforma es intencionalmente dark-only (no hay toggle de
+ * tema), así que `:root` y `.dark` llevan los mismos valores; se mantienen
+ * ambos bloques porque es la convención que espera shadcn (y por si algún
+ * día se agrega un tema claro).
+ *
+ * Los colores van en hex de 6 u 8 dígitos (con alpha) en vez de HSL: son los
+ * mismos valores que ya se usaban sueltos como `bg-[#0C0C0C]`,
+ * `border-[#D7E2EA]/10`, etc. por toda la app, ahora centralizados acá.
+ * Tailwind 3.4+ soporta modificadores de opacidad (`bg-primary/50`) sobre
+ * variables CSS en hex sin necesitar el wrapper hsl()/oklch().
+ */
+@layer base {
+  :root {
+    --background: #0C0C0C;
+    --foreground: #D7E2EA;
+
+    --card: #111111;
+    --card-foreground: #D7E2EA;
+    --popover: #111111;
+    --popover-foreground: #D7E2EA;
+
+    /* Verde de marca (el mismo de los botones CTA y los focus ring). */
+    --primary: #00F3B6;
+    --primary-foreground: #0C0C0C;
+
+    --secondary: #1A1A1A;
+    --secondary-foreground: #D7E2EA;
+
+    --muted: #1A1A1A;
+    --muted-foreground: #7A8286;
+
+    --accent: #1A1A1A;
+    --accent-foreground: #D7E2EA;
+
+    --destructive: #F87171;
+
+    --border: #D7E2EA1A;
+    --input: #D7E2EA26;
+    --ring: #00F3B6;
+
+    --chart-1: #00F3B6;
+    --chart-2: #00C99A;
+    --chart-3: #7A8286;
+    --chart-4: #D7E2EA;
+    --chart-5: #1A1A1A;
+
+    --radius: 0.75rem;
+
+    --sidebar: #0C0C0C;
+    --sidebar-foreground: #D7E2EA;
+    --sidebar-primary: #00F3B6;
+    --sidebar-primary-foreground: #0C0C0C;
+    --sidebar-accent: #1A1A1A;
+    --sidebar-accent-foreground: #D7E2EA;
+    --sidebar-border: #D7E2EA1A;
+    --sidebar-ring: #00F3B6;
+  }
+
+  .dark {
+    --background: #0C0C0C;
+    --foreground: #D7E2EA;
+
+    --card: #111111;
+    --card-foreground: #D7E2EA;
+    --popover: #111111;
+    --popover-foreground: #D7E2EA;
+
+    --primary: #00F3B6;
+    --primary-foreground: #0C0C0C;
+
+    --secondary: #1A1A1A;
+    --secondary-foreground: #D7E2EA;
+
+    --muted: #1A1A1A;
+    --muted-foreground: #7A8286;
+
+    --accent: #1A1A1A;
+    --accent-foreground: #D7E2EA;
+
+    --destructive: #F87171;
+
+    --border: #D7E2EA1A;
+    --input: #D7E2EA26;
+    --ring: #00F3B6;
+
+    --chart-1: #00F3B6;
+    --chart-2: #00C99A;
+    --chart-3: #7A8286;
+    --chart-4: #D7E2EA;
+    --chart-5: #1A1A1A;
+
+    --sidebar: #0C0C0C;
+    --sidebar-foreground: #D7E2EA;
+    --sidebar-primary: #00F3B6;
+    --sidebar-primary-foreground: #0C0C0C;
+    --sidebar-accent: #1A1A1A;
+    --sidebar-accent-foreground: #D7E2EA;
+    --sidebar-border: #D7E2EA1A;
+    --sidebar-ring: #00F3B6;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
